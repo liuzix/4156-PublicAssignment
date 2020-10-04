@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import io.javalin.Javalin;
 import java.io.IOException;
 import java.util.Queue;
-
 import models.GameBoard;
 import models.Message;
 import models.Player;
@@ -18,6 +17,7 @@ class PlayGame {
   private static Javalin app;
 
   /** Main method of the application.
+   *
    * @param args Command line arguments
    */
   public static void main(final String[] args) {
@@ -25,11 +25,6 @@ class PlayGame {
     app = Javalin.create(config -> {
       config.addStaticFiles("/public");
     }).start(PORT_NUMBER);
-
-    // Test Echo Server
-    app.post("/echo", ctx -> {
-      ctx.result(ctx.body());
-    });
 
     app.get("/newgame", ctx -> {
       gameBoard = new GameBoard();
@@ -43,12 +38,15 @@ class PlayGame {
         // We only accept X or O as "type".
         if (type.length() != 1) {
           ctx.status(400);
+          return;
         }
         if (type.charAt(0) != 'X' && type.charAt(0) != 'O') {
           ctx.status(400);
+          return;
         }
         if (gameBoard == null) {
           ctx.status(404);
+          return;
         }
 
         gameBoard.getP1().setType(type.charAt(0));
@@ -65,7 +63,7 @@ class PlayGame {
 
     app.get("/joingame", ctx -> {
       if (gameBoard == null) {
-        ctx.status(404);
+        ctx.status(400);
         return;
       }
 
@@ -130,6 +128,7 @@ class PlayGame {
   }
 
   /** Send message to all players.
+   *
    * @param gameBoardJson Gameboard JSON
    * @throws IOException Websocket message send IO Exception
    */

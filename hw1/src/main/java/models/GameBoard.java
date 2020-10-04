@@ -16,6 +16,9 @@ public class GameBoard {
 
   private boolean isDraw;
 
+  /**
+   * Default constructor for GameBoard.
+   */
   public GameBoard() {
     p1 = new Player();
     p1.setId(1);
@@ -27,6 +30,14 @@ public class GameBoard {
     isDraw = false;
   }
 
+  /**
+   * This method is called when a player wants to make a move.
+   *
+   * @param playerId the ID of the player who makes the move.
+   * @param x the x coordinate of the move
+   * @param y the y coordinate of the move
+   * @return the Message to return to the client
+   */
   public Message makeMove(int playerId, int x, int y) {
     Message ret = new Message();
 
@@ -35,6 +46,19 @@ public class GameBoard {
       ret.setCode(400);
       ret.setMoveValidity(false);
       ret.setMessage("Game not ready");
+      return ret;
+    }
+
+    // Get player Info.
+    char type;
+    if (playerId == 1) {
+      type = p1.getType();
+    } else if (playerId == 2) {
+      type = p2.getType();
+    } else {
+      ret.setCode(400);
+      ret.setMoveValidity(false);
+      ret.setMessage("Invalid player ID");
       return ret;
     }
 
@@ -60,18 +84,6 @@ public class GameBoard {
       return ret;
     }
 
-    char type;
-    if (playerId == 1) {
-      type = p1.getType();
-    } else if (playerId == 2) {
-      type = p2.getType();
-    } else {
-      ret.setCode(400);
-      ret.setMoveValidity(false);
-      ret.setMessage("Invalid player ID");
-      return ret;
-    }
-
     boardState[x][y] = type;
     if (playerId == 1) {
       turn = 2;
@@ -85,6 +97,9 @@ public class GameBoard {
     return ret;
   }
 
+  /**
+   * Updates the winner field if necessary. Checks the winning conditions.
+   */
   public void updateWinner() {
     // Check all rows.
     for (int i = 0; i < 3; i++) {
@@ -149,9 +164,9 @@ public class GameBoard {
     sum = 0;
     // Check the antidiagonal.
     for (int i = 0; i < 3; i++) {
-      if (boardState[i][2-i] == p1.getType()) {
+      if (boardState[i][2 - i] == p1.getType()) {
         sum++;
-      } else if (boardState[i][2-i] == p2.getType()) {
+      } else if (boardState[i][2 - i] == p2.getType()) {
         sum--;
       }
     }
@@ -210,12 +225,29 @@ public class GameBoard {
     this.turn = turn;
   }
 
+  /**
+   * This method makes a deep copy of boardState and returns it.
+   *
+   * @return a deep copy of boardState
+   */
   public char[][] getBoardState() {
-    return boardState;
+    char[][] ret = new char[][] {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+    for (int i = 0; i < 3; i++) {
+      System.arraycopy(boardState[i], 0, ret[i], 0, 3);
+    }
+    return ret;
   }
 
+  /**
+   * This methods make a deep copy of the argument and store it.
+   *
+   * @param boardState a 2d array representing the board's state
+   */
   public void setBoardState(char[][] boardState) {
-    this.boardState = boardState;
+    this.boardState = new char[][] {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+    for (int i = 0; i < 3; i++) {
+      System.arraycopy(boardState[i], 0, this.boardState[i], 0, 3);
+    }
   }
 
   public int getWinner() {
