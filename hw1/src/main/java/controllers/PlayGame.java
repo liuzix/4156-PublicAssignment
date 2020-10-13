@@ -3,14 +3,18 @@ package controllers;
 import com.google.gson.Gson;
 import io.javalin.Javalin;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Queue;
 import models.GameBoard;
 import models.Message;
+import models.Persister;
 import models.Player;
 import org.eclipse.jetty.websocket.api.Session;
 
 class PlayGame {
-  private static GameBoard gameBoard;
+  static GameBoard gameBoard;
+
+  private static Persister persister;
 
   private static final int PORT_NUMBER = 8080;
 
@@ -21,10 +25,24 @@ class PlayGame {
    * @param args Command line arguments
    */
   public static void main(final String[] args) {
+    try {
+      persister = new Persister();
+    } catch (SQLException throwables) {
+      throwables.printStackTrace();
+      return;
+    }
+
+    gameBoard = persister.restore();
 
     app = Javalin.create(config -> {
       config.addStaticFiles("/public");
     }).start(PORT_NUMBER);
+
+    app.after(ctx -> {
+      if (gameBoard != null) {
+        persister.save(gameBoard);
+      }
+    });
 
     app.get("/newgame", ctx -> {
       gameBoard = new GameBoard();

@@ -1,11 +1,17 @@
 package controllers;
 
 import com.google.gson.Gson;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.SQLException;
 import kong.unirest.Unirest;
 import models.GameBoard;
 import models.Message;
+import models.Persister;
 import models.Player;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
@@ -13,16 +19,39 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PlayGameTest {
 
   /** Runs only once before the testing starts. */
   @BeforeAll
   public static void init() {
+    // Remove persisted states
+    try {
+      Files.deleteIfExists(Paths.get("hw1.db"));
+    } catch (IOException e) {
+      e.printStackTrace();
+      Assertions.fail();
+    }
+
     // Start Server
     PlayGame.main(null);
     System.out.println("Server started");
   }
+
+  /** Checks the persisted data is consistent. */
+  @AfterEach
+  public void persisterConsistentTest() {
+    try {
+      Persister persister = new Persister();
+      Gson gson = new Gson();
+      Assertions.assertEquals(gson.toJson(persister.restore()), gson.toJson(PlayGame.gameBoard));
+    } catch (SQLException throwables) {
+      throwables.printStackTrace();
+      Assertions.fail();
+    }
+  }
+
 
   /** Tests that 404 is returned by startgame when there's no game. */
   @Test
